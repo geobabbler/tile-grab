@@ -1,13 +1,43 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Apr 29 11:22:45 2014
-command line: --bbox minx;miny;maxx;maxy --inverty true/false --zoom 3 -urltemplate tokenized_url
-@author: dollinsw
+The MIT License (MIT)
+
+Copyright (c) 2014 William E. Dollins
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 """
+
 import urllib
-import os
+import urlparse, os
 from optparse import OptionParser
 from globalmaptiles import GlobalMercator
+
+def getExtension(urlTemplate):
+    path = urlparse.urlparse(urlTemplate).path
+    ext = os.path.splitext(path)[1]
+    return ext
+
+def getWorldFileExtension(x):
+    return {
+        '.png': '.pgw',
+        '.jpg': '.jgw',
+        }.get(x, '.pgw')    # .pgw is default if x not found
 
 parser = OptionParser(usage="usage: %prog [options] filename")
 parser.add_option('-b', '--bbox', 
@@ -40,27 +70,32 @@ parser.add_option('-u', '--urltemplate',
                   default='',
                   help='tokenized url template',)
 (options, args) = parser.parse_args()
-#print options.zoom
-#print options.template.format(z=options.zoom,x='x',y='y')
+#parse the bounds
 boundsarr = options.bounds.split(';')
 lonarr = sorted([float(boundsarr[0]), float(boundsarr[2])])
 latarr = sorted([float(boundsarr[1]), float(boundsarr[3])])
 z = int(options.zoom)
 
 gm = GlobalMercator()
+#Convert bounds to meters
 mx0, my0 = gm.LatLonToMeters(latarr[0], lonarr[0])
 mx1, my1 = gm.LatLonToMeters(latarr[1], lonarr[1])
-
+#get TMS tile address range
 tx0, ty0 = gm.MetersToTile(mx0,my0,z)
 tx1, ty1 = gm.MetersToTile(mx1,my1,z)
-print tx0,ty0
-print tx1,ty1
-
+#sort the tile addresses low to high
 xarr = sorted([tx0,tx1])
 yarr = sorted([ty0,ty1])
-
+#figure out relevant extensions
+extension = getExtension(options.template)
+wf = getWorldFileExtension(extension)
+#create the destination location using the z value
 root = options.destination + '/' + str(z)
-os.makedirs(root)
+try:
+    os.makedirs(root)
+except:
+    print "Could not create destination. It may already exist."
+
 
 for x in xarr:
     for y in yarr:
@@ -69,17 +104,12 @@ for x in xarr:
         if options.inverty == 'false':
             gx, gy = gm.GoogleTile(x,y,z)
         url = options.template.format(z=options.zoom,x=gx,y=gy)
-        print url
-        #TODO: stop assuming PNG
-        fname = root + '/' + str(x) + '_' + str(y) + '.png'
+        
+        fname = root + '/' + str(x) + '_' + str(y) + extension
         xscale, xshift, yshift, yscale, xorigin, yorigin = gm.WorldFileParameters(x,y,z)
         newline = str(xscale) + '\n' + str(xshift) + '\n' + str(yshift) + '\n' + str(yscale) + '\n' + str(xorigin) + '\n' + str(yorigin)
-        file = open(root + '/' + str(x) + '_' + str(y) + '.pgw', 'w')
+        file = open(root + '/' + str(x) + '_' + str(y) + wf, 'w')
         file.write(newline)
         file.close()
         image = urllib.URLopener()
         image.retrieve(url, fname)
-        
-
-#print args
-#print options["-bbox"]
