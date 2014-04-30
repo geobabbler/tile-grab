@@ -244,9 +244,9 @@ class GlobalMercator(object):
         "Returns world file (affine transofrmation) parameters of the given tile"
         
         bounds = self.TileBounds( tx, ty, zoom)
-        moriginx = bounds[1] + (self.Resolution(zoom) / 2)
-        moriginy = bounds[2] - (self.Resolution(zoom) / 2)
-        return (self.Resolution(zoom), 0.0, 0.0, self.Resolution(zoom) * -1, moriginx, moriginy)
+        moriginx = bounds[3] + (self.Resolution(zoom) / 2)
+        moriginy = bounds[0] - (self.Resolution(zoom) / 2)
+        return (self.Resolution(zoom), 0.0, 0.0, self.Resolution(zoom) * -1, moriginy, moriginx)
 
     def Resolution(self, zoom ):
         "Resolution (meters/pixel) for given zoom level (measured at Equator)"
