@@ -15,6 +15,11 @@ parser.add_option('-b', '--bbox',
                   dest='bounds',
                   default='0;0;0;0',
                   help='bounds from which to extract tiles',)
+parser.add_option('-d', '--destination', 
+                  action='store',
+                  dest='destination',
+                  default='/',
+                  help='file system directory to which tiles will be extracted',)
 parser.add_option('-i', '--inverty',
                       type='choice',
                       action='store',
@@ -53,7 +58,10 @@ print tx1,ty1
 
 xarr = sorted([tx0,tx1])
 yarr = sorted([ty0,ty1])
-#os.mkdir('C:\\Workspace\\tiles\\' + str(z))
+
+root = options.destination + '/' + str(z)
+os.makedirs(root)
+
 for x in xarr:
     for y in yarr:
         gx = x
@@ -62,10 +70,10 @@ for x in xarr:
             gx, gy = gm.GoogleTile(x,y,z)
         url = options.template.format(z=options.zoom,x=gx,y=gy)
         print url
-        fname = 'C:\\Workspace\\tiles\\' + str(z) + '\\' + str(x) + '_' + str(y) + '.png'
+        fname = root + '/' + str(x) + '_' + str(y) + '.png'
         xscale, xshift, yshift, yscale, xorigin, yorigin = gm.WorldFileParameters(x,y,z)
         newline = str(xscale) + '\n' + str(xshift) + '\n' + str(yshift) + '\n' + str(yscale) + '\n' + str(xorigin) + '\n' + str(yorigin)
-        file = open('C:\\Workspace\\tiles\\' + str(z) + '\\' + str(x) + '_' + str(y) + '.pgw', 'w')
+        file = open(root + '/' + str(x) + '_' + str(y) + '.pgw', 'w')
         file.write(newline)
         file.close()
         image = urllib.URLopener()
