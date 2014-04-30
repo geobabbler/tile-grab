@@ -70,6 +70,7 @@ for x in xarr:
             gx, gy = gm.GoogleTile(x,y,z)
         url = options.template.format(z=options.zoom,x=gx,y=gy)
         print url
+        #TODO: stop assuming PNG
         fname = root + '/' + str(x) + '_' + str(y) + '.png'
         xscale, xshift, yshift, yscale, xorigin, yorigin = gm.WorldFileParameters(x,y,z)
         newline = str(xscale) + '\n' + str(xshift) + '\n' + str(yshift) + '\n' + str(yscale) + '\n' + str(xorigin) + '\n' + str(yorigin)
