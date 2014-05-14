@@ -23,6 +23,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+#--bbox -77.0;38.33;-77.2;38.34 -z 13 -i false -d "C:\Workspace\tiles\DLGR_grab" -u 
+#http://a.tiles.mapbox.com/v3/bdollins.p993haor/{z}/{x}/{y}.png
+
 import urllib
 import urlparse, os
 from optparse import OptionParser
@@ -34,6 +37,8 @@ def getExtension(urlTemplate):
     return ext
 
 def getWorldFileExtension(x):
+    "Figures out the proper world file extension based on image type."
+    
     return {
         '.png': '.pgw',
         '.jpg': '.jgw',
@@ -97,8 +102,8 @@ except:
     print "Could not create destination. It may already exist."
 
 
-for x in xarr:
-    for y in yarr:
+for x in range(xarr[0], xarr[1] + 1):
+    for y in range(yarr[0], yarr[1] + 1):
         gx = x
         gy = y
         if options.inverty == 'false':
@@ -107,9 +112,12 @@ for x in xarr:
         
         fname = root + '/' + str(x) + '_' + str(y) + extension
         xscale, xshift, yshift, yscale, xorigin, yorigin = gm.WorldFileParameters(x,y,z)
-        newline = str(xscale) + '\n' + str(xshift) + '\n' + str(yshift) + '\n' + str(yscale) + '\n' + str(xorigin) + '\n' + str(yorigin)
-        file = open(root + '/' + str(x) + '_' + str(y) + wf, 'w')
-        file.write(newline)
-        file.close()
-        image = urllib.URLopener()
-        image.retrieve(url, fname)
+        try:
+            image = urllib.URLopener()
+            image.retrieve(url, fname)
+            newline = str(xscale) + '\n' + str(xshift) + '\n' + str(yshift) + '\n' + str(yscale) + '\n' + str(xorigin) + '\n' + str(yorigin)
+            file = open(root + '/' + str(x) + '_' + str(y) + wf, 'w')
+            file.write(newline)
+            file.close()
+        except:
+            print "Tile not found"
